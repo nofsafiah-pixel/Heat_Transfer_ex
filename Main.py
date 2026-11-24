@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
-    QMessageBox,
     QPushButton,
     QSlider,
     QVBoxLayout,
@@ -17,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from about import AboutWindow
+from graph_window import GraphWindow
 
 
 class HeatTransfer(QWidget):
@@ -102,7 +102,8 @@ class HeatTransfer(QWidget):
         self.graphs_button = QPushButton("Graphs")
         self.graphs_button.setObjectName("secondaryButton")
         self.graphs_button.setMinimumWidth(120)
-        self.graphs_button.clicked.connect(self._show_graphs_placeholder)
+        self.graph_window = GraphWindow()
+        self.graphs_button.clicked.connect(self._open_graph_window)
         action_layout.addWidget(self.graphs_button)
 
         self.about_button = QPushButton("About")
@@ -261,12 +262,10 @@ class HeatTransfer(QWidget):
         self.about_window = AboutWindow()
         self.about_window.show()
 
-    def _show_graphs_placeholder(self) -> None:
-        QMessageBox.information(
-            self,
-            "Graphs",
-            "Graphing controls will be added in Part B.",
-        )
+    def _open_graph_window(self) -> None:
+        self.graph_window.show()
+        self.graph_window.raise_()
+        self.graph_window.activateWindow()
 
 
 if __name__ == "__main__":

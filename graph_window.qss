@@ -1,0 +1,92 @@
+QWidget {
+    color: #eaf0f8;
+    font-family: "Segoe UI";
+    font-size: 13px;
+}
+
+#graphWindow {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 1,
+        stop: 0 #111b2b, stop: 1 #1c2b43
+    );
+}
+
+QLabel {
+    background: transparent;
+}
+
+#graphTitle {
+    color: #f7f9fd;
+    font-size: 27px;
+    font-weight: 700;
+}
+
+#seriesLabel {
+    color: #d7e2f0;
+    font-weight: 600;
+}
+
+QComboBox {
+    min-height: 38px;
+    padding: 0 11px;
+    color: #f5f7fb;
+    background-color: #1b2b42;
+    border: 1px solid #536985;
+    border-radius: 9px;
+}
+
+QComboBox:hover {
+    border-color: #78d7d0;
+}
+
+QComboBox::drop-down {
+    width: 30px;
+    border: none;
+}
+
+QComboBox QAbstractItemView {
+    color: #edf3fa;
+    background-color: #1b2b42;
+    border: 1px solid #536985;
+    selection-background-color: #315b70;
+    outline: none;
+}
+
+#graphFrame {
+    background-color: #f4f7fb;
+    border: 1px solid #536985;
+    border-radius: 13px;
+}
+
+#resetButton, #secondaryButton {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+#resetButton {
+    color: #10232c;
+    background-color: #83e3d4;
+    border: 1px solid #a2f0e2;
+}
+
+#resetButton:hover {
+    background-color: #a0f0e2;
+}
+
+#secondaryButton {
+    color: #eaf0f8;
+    background-color: #293d59;
+    border: 1px solid #536985;
+}
+
+#secondaryButton:hover {
+    background-color: #354d6c;
+    border-color: #7189a6;
+}
+
+QPushButton:pressed {
+    padding-top: 2px;
+    padding-bottom: 0;
+}
