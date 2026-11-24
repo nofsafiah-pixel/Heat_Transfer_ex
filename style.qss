@@ -7,7 +7,7 @@ QWidget {
 #heatTransferWindow {
     background: qlineargradient(
         x1: 0, y1: 0, x2: 1, y2: 1,
-        stop: 0 #101827, stop: 0.55 #17243a, stop: 1 #1d2b45
+        stop: 0 #101827, stop: 0.55 #17243a, stop: 1 #05070b
     );
 }
 
@@ -34,8 +34,8 @@ QLabel {
 }
 
 #leftBodyCard, #rightBodyCard, #bridgePanel {
-    background-color: rgba(31, 45, 67, 230);
-    border: 1px solid #354760;
+    background-color: #99b1d1;
+    border: 1px solid #528482;
     border-radius: 18px;
 }
 
@@ -44,7 +44,7 @@ QLabel {
 }
 
 #rightBodyCard {
-    border-top: 3px solid #70c4f4;
+    border-top: 3px solid #000000;
 }
 
 #bodyTitle {
@@ -65,7 +65,7 @@ QLabel {
 }
 
 #rightReservoirCaption {
-    color: #82cdf5;
+    color: #000000;
 }
 
 QLabel#leftMaterialLabel, QLabel#rightMaterialLabel,
@@ -82,7 +82,7 @@ QComboBox, QDoubleSpinBox {
     min-height: 38px;
     padding: 0 11px;
     color: #f5f7fb;
-    background-color: #152238;
+    background-color: #375760;
     border: 1px solid #425570;
     border-radius: 9px;
     selection-background-color: #3b82a0;
@@ -108,7 +108,7 @@ QComboBox QAbstractItemView {
 #leftTemperatureDisplay, #rightTemperatureDisplay {
     min-width: 108px;
     color: #28364a;
-    background-color: #e6ebf0;
+    background-color: #8b9daf;
     border: 1px solid #c7d0da;
     font-size: 15px;
     font-weight: 700;
@@ -152,7 +152,7 @@ QSlider::handle:horizontal {
 #bridgeBar {
     background: qlineargradient(
         x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 #ff9a76, stop: 0.5 #d6bd8b, stop: 1 #70c4f4
+        stop: 0 #ff9a76, stop: 0.5 #d6bd8b, stop: 1 #000000
     );
     border: 1px solid rgba(255, 255, 255, 45);
     border-radius: 9px;
