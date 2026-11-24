@@ -25,6 +25,14 @@ class HeatTransfer(QWidget):
         self.setObjectName("heatTransferWindow")
         self.setWindowTitle("Heat Transfer | Thermal Lab")
         self.setMinimumSize(1060, 760)
+        self.materials = {
+        "Water": 4184.0,
+        "Aluminum": 897.0,
+        "Iron": 449.0,
+        "Copper": 385.0,
+    }
+
+    
 
         stylesheet_path = Path(__file__).with_name("style.qss")
         self.setStyleSheet(stylesheet_path.read_text(encoding="utf-8"))
@@ -56,8 +64,10 @@ class HeatTransfer(QWidget):
 
         (
             self.left_body_card,
+            self.left_material_combo,
             self.left_temperature_slider,
             self.left_temperature_display,
+            self.left_heat_capacity_input,
         ) = self._create_body_panel(
             "left",
             "Left body",
@@ -71,8 +81,10 @@ class HeatTransfer(QWidget):
 
         (
             self.right_body_card,
+            self.right_material_combo,
             self.right_temperature_slider,
             self.right_temperature_display,
+            self.right_heat_capacity_input,
         ) = self._create_body_panel(
             "right",
             "Right body",
@@ -88,6 +100,9 @@ class HeatTransfer(QWidget):
             self.right_temperature_display.setValue
         )
         page_layout.addLayout(bodies_layout, 1)
+
+        self.left_material_combo.currentTextChanged.connect(self.update_left_material)
+        self.right_material_combo.currentTextChanged.connect(self.update_right_material)
 
         action_layout = QHBoxLayout()
         action_layout.setSpacing(12)
@@ -200,7 +215,7 @@ class HeatTransfer(QWidget):
         body_layout.addLayout(properties_layout)
         body_layout.addStretch()
 
-        return body_card, temperature_slider, temperature_display
+        return body_card, material_selector, temperature_slider, temperature_display, heat_capacity_input
 
     def _create_bridge_panel(self) -> QFrame:
         bridge_panel = QFrame()
@@ -266,6 +281,16 @@ class HeatTransfer(QWidget):
         self.graph_window.show()
         self.graph_window.raise_()
         self.graph_window.activateWindow()
+
+    def update_left_material(self):
+        material = self.left_material_combo.currentText()
+        if material in self.materials:
+            self.left_heat_capacity_input.setValue(self.materials[material])
+
+    def update_right_material(self):
+        material = self.right_material_combo.currentText()
+        if material in self.materials:
+            self.right_heat_capacity_input.setValue(self.materials[material])
 
 
 if __name__ == "__main__":
