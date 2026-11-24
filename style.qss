@@ -80,12 +80,25 @@ QLabel#leftHeatCapacityLabel, QLabel#rightHeatCapacityLabel,
 
 QComboBox, QDoubleSpinBox {
     min-height: 38px;
-    padding: 0 11px;
     color: #f5f7fb;
     background-color: #375760;
     border: 1px solid #425570;
     border-radius: 9px;
     selection-background-color: #3b82a0;
+}
+
+QComboBox {
+    padding: 0 11px;
+}
+
+QDoubleSpinBox {
+    padding: 0;
+}
+
+QDoubleSpinBox QLineEdit {
+    padding: 0 8px;
+    background: transparent;
+    border: none;
 }
 
 QComboBox:hover, QDoubleSpinBox:hover {
@@ -112,6 +125,14 @@ QComboBox QAbstractItemView {
     border: 1px solid #c7d0da;
     font-size: 15px;
     font-weight: 700;
+}
+
+#leftTemperatureDisplay::up-button,
+#leftTemperatureDisplay::down-button,
+#rightTemperatureDisplay::up-button,
+#rightTemperatureDisplay::down-button {
+    width: 0;
+    height: 0;
 }
 
 QSlider {

@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
+
+
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -68,6 +70,8 @@ class HeatTransfer(QWidget):
             self.left_temperature_slider,
             self.left_temperature_display,
             self.left_heat_capacity_input,
+            self.left_mass_input,
+                        
         ) = self._create_body_panel(
             "left",
             "Left body",
@@ -85,6 +89,8 @@ class HeatTransfer(QWidget):
             self.right_temperature_slider,
             self.right_temperature_display,
             self.right_heat_capacity_input,
+            self.right_mass_input
+            
         ) = self._create_body_panel(
             "right",
             "Right body",
@@ -93,11 +99,13 @@ class HeatTransfer(QWidget):
         )
         bodies_layout.addWidget(self.right_body_card, 5)
 
+        self.left_temperature_c = 200.0
+        self.right_temperature_c = 0.0
         self.left_temperature_slider.valueChanged.connect(
-            self.left_temperature_display.setValue
+            self._set_left_temperature_from_slider
         )
         self.right_temperature_slider.valueChanged.connect(
-            self.right_temperature_display.setValue
+            self._set_right_temperature_from_slider
         )
         page_layout.addLayout(bodies_layout, 1)
 
@@ -129,6 +137,11 @@ class HeatTransfer(QWidget):
 
         page_layout.addLayout(action_layout)
         self.about_window = None
+
+        self.dt = 0.1
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.step_simulation)
+        self.start_button.clicked.connect(self.toggle_simulation)
 
     def _create_body_panel(
         self,
@@ -171,10 +184,9 @@ class HeatTransfer(QWidget):
         temperature_display = QDoubleSpinBox()
         temperature_display.setObjectName(f"{side_name}TemperatureDisplay")
         temperature_display.setRange(0.0, 200.0)
-        temperature_display.setDecimals(1)
+        temperature_display.setDecimals(4)
         temperature_display.setSuffix(" °C")
         temperature_display.setReadOnly(True)
-        temperature_display.setButtonSymbols(QDoubleSpinBox.NoButtons)
         temperature_display.setValue(float(initial_temperature))
         temperature_row.addWidget(temperature_display)
         body_layout.addLayout(temperature_row)
@@ -215,7 +227,7 @@ class HeatTransfer(QWidget):
         body_layout.addLayout(properties_layout)
         body_layout.addStretch()
 
-        return body_card, material_selector, temperature_slider, temperature_display, heat_capacity_input
+        return body_card, material_selector, temperature_slider, temperature_display, heat_capacity_input, mass_input
 
     def _create_bridge_panel(self) -> QFrame:
         bridge_panel = QFrame()
@@ -282,6 +294,14 @@ class HeatTransfer(QWidget):
         self.graph_window.raise_()
         self.graph_window.activateWindow()
 
+    def _set_left_temperature_from_slider(self, temperature: int) -> None:
+        self.left_temperature_c = float(temperature)
+        self.left_temperature_display.setValue(self.left_temperature_c)
+
+    def _set_right_temperature_from_slider(self, temperature: int) -> None:
+        self.right_temperature_c = float(temperature)
+        self.right_temperature_display.setValue(self.right_temperature_c)
+
     def update_left_material(self):
         material = self.left_material_combo.currentText()
         if material in self.materials:
@@ -291,6 +311,38 @@ class HeatTransfer(QWidget):
         material = self.right_material_combo.currentText()
         if material in self.materials:
             self.right_heat_capacity_input.setValue(self.materials[material])
+
+    def toggle_simulation(self):
+        if self.start_button.isChecked():
+            self.start_button.setText("Pause")
+            self.timer.start(100)
+        else:
+            self.start_button.setText("Start")
+            self.timer.stop()
+
+    def step_simulation(self):
+        t_left = self.left_temperature_c
+        t_right = self.right_temperature_c
+
+        m_left = self.left_mass_input.value()
+        m_right = self.right_mass_input.value()
+
+        c_left = self.left_heat_capacity_input.value()
+        c_right = self.right_heat_capacity_input.value()
+
+        k = self.conductivity_input.value()
+
+        if m_left * c_left == 0 or m_right * c_right == 0:
+            return
+
+        q = k * (t_left - t_right) * self.dt
+        new_t_left = t_left - q / (m_left * c_left)
+        new_t_right = t_right + q / (m_right * c_right)
+
+        self.left_temperature_c = min(200.0, max(0.0, new_t_left))
+        self.right_temperature_c = min(200.0, max(0.0, new_t_right))
+        self.left_temperature_display.setValue(self.left_temperature_c)
+        self.right_temperature_display.setValue(self.right_temperature_c)
 
 
 if __name__ == "__main__":
