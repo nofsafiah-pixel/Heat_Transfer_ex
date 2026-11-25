@@ -2,8 +2,11 @@ from pathlib import Path
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -72,7 +75,7 @@ class GraphWindow(QWidget):
 
         self.save_csv_button = QPushButton("Save CSV")
         self.save_csv_button.setObjectName("secondaryButton")
-        self.save_csv_button.clicked.connect(self._show_csv_placeholder)
+        self.save_csv_button.clicked.connect(self.save_csv)
         button_row.addWidget(self.save_csv_button)
 
         self.save_graph_button = QPushButton("Save Graph")
@@ -125,3 +128,28 @@ class GraphWindow(QWidget):
             "Save Graph",
             "Graph saving will be available when plotting is implemented.",
         )
+
+    def save_csv(self) -> None:
+        if not self.times:
+            QMessageBox.information(
+                self,
+                "Save CSV",
+                "No simulation data to save yet.",
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Experiment Data",
+            "experiment_data.csv",
+            "CSV Files (*.csv);;All Files (*)",
+        )
+        if not file_path:
+            return
+
+        with open(file_path, "w", newline="") as f:
+            f.write("Time (s),Temperature 1 (C),Temperature 2 (C)\n")
+            for t, t1, t2 in zip(self.times, self.left_temps, self.right_temps):
+                f.write(f"{t},{t1},{t2}\n")
+
+        QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
