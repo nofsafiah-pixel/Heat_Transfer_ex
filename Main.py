@@ -408,6 +408,12 @@ class HeatTransfer(QWidget):
         )
 
         self.update_bridge_color()
+#עצירה אוטומטית- בונוס
+        if abs(self.left_body.temperature - self.right_body.temperature) < 0.0001:
+            self.start_button.setChecked(False)
+            self.toggle_simulation()
+
+        self.update_bridge_color()
 
     
     def _sync_bodies_from_inputs(self) -> None:
