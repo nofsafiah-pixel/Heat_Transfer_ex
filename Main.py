@@ -314,13 +314,29 @@ class HeatTransfer(QWidget):
             self.right_heat_capacity_input.setValue(self.materials[material])
 
     def toggle_simulation(self):
-        if self.start_button.isChecked():
+        is_running = self.start_button.isChecked()
+        editable_controls = [
+            self.left_temperature_slider,
+            self.right_temperature_slider,
+            self.left_material_combo,
+            self.right_material_combo,
+            self.left_mass_input,
+            self.right_mass_input,
+            self.left_heat_capacity_input,
+            self.right_heat_capacity_input,
+            self.conductivity_input,
+        ]
+
+        for control in editable_controls:
+            control.setEnabled(not is_running)
+
+        if is_running:
             self.start_button.setText("Pause")
             self.timer.start(100)
         else:
             self.start_button.setText("Start")
             self.timer.stop()
-
+            
     def step_simulation(self):
         t_left = self.left_temperature_c
         t_right = self.right_temperature_c
