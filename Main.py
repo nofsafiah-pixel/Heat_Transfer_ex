@@ -142,6 +142,7 @@ class HeatTransfer(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.step_simulation)
         self.start_button.clicked.connect(self.toggle_simulation)
+        self.update_bridge_color()
 
     def _create_body_panel(
         self,
@@ -241,10 +242,10 @@ class HeatTransfer(QWidget):
         bridge_heading.setAlignment(Qt.AlignCenter)
         bridge_layout.addWidget(bridge_heading)
 
-        bridge_bar = QFrame()
-        bridge_bar.setObjectName("bridgeBar")
-        bridge_bar.setFixedHeight(18)
-        bridge_layout.addWidget(bridge_bar)
+        self.bridge_bar = QFrame()
+        self.bridge_bar.setObjectName("bridgeBar")
+        self.bridge_bar.setFixedHeight(36)
+        bridge_layout.addWidget(self.bridge_bar)
 
         bridge_caption = QLabel("Thermal bridge")
         bridge_caption.setObjectName("bridgeCaption")
@@ -343,7 +344,36 @@ class HeatTransfer(QWidget):
         self.right_temperature_c = min(200.0, max(0.0, new_t_right))
         self.left_temperature_display.setValue(self.left_temperature_c)
         self.right_temperature_display.setValue(self.right_temperature_c)
+    
+    def update_bridge_color(self) -> None:
+        left_red = int((self.left_temperature_c / 200.0) * 255)
+        right_red = int((self.right_temperature_c / 200.0) * 255)
 
+        left_red = min(255, max(0, left_red))
+        right_red = min(255, max(0, right_red))
+
+        self.bridge_bar.setStyleSheet(
+            f"""
+            QFrame#bridgeBar {{
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 1, y2: 0,
+                    stop: 0 rgb({left_red}, 0, 0),
+                    stop: 1 rgb({right_red}, 0, 0)
+                );
+                border-radius: 10px;
+            }}
+            """
+        )
+
+    def _set_left_temperature_from_slider(self, temperature: int) -> None:
+        self.left_temperature_c = float(temperature)
+        self.left_temperature_display.setValue(self.left_temperature_c)
+        self.update_bridge_color()
+
+    def _set_right_temperature_from_slider(self, temperature: int) -> None:
+        self.right_temperature_c = float(temperature)
+        self.right_temperature_display.setValue(self.right_temperature_c)
+        self.update_bridge_color()      
 
 if __name__ == "__main__":
     app = QApplication()

@@ -161,6 +161,8 @@ QSlider::handle:horizontal {
 #bridgePanel {
     background-color: rgba(23, 36, 56, 235);
     border-color: #30425a;
+    min-width: 240px;
+    min-height: 480px;
 }
 
 #bridgeHeading {
@@ -177,6 +179,7 @@ QSlider::handle:horizontal {
     );
     border: 1px solid rgba(255, 255, 255, 45);
     border-radius: 9px;
+    min-height: 28px;
 }
 
 #bridgeCaption {
