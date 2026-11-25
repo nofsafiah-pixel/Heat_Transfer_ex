@@ -51,7 +51,7 @@ class HeatTransfer(QWidget):
         heading_layout = QVBoxLayout()
         heading_layout.setSpacing(5)
 
-        page_eyebrow = QLabel("THERMAL LAB  /  STEP 02A")
+        page_eyebrow = QLabel("THERMAL LAB")
         page_eyebrow.setObjectName("pageEyebrow")
         heading_layout.addWidget(page_eyebrow)
 
