@@ -71,6 +71,7 @@ class HeatTransfer(QWidget):
 
         (
             self.left_body_card,
+            self.left_body_visual,
             self.left_material_combo,
             self.left_temperature_slider,
             self.left_temperature_display,
@@ -89,6 +90,7 @@ class HeatTransfer(QWidget):
 
         (
             self.right_body_card,
+            self.right_body_visual,
             self.right_material_combo,
             self.right_temperature_slider,
             self.right_temperature_display,
@@ -166,14 +168,22 @@ class HeatTransfer(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.step_simulation)
         self.start_button.clicked.connect(self.toggle_simulation)
-        self.update_bridge_color()
+        self.update_temperature_colors()
 
     def _create_body_panel(
         self,
         side_name: str,
         title: str,
         initial_temperature: int,
-    ) -> tuple[QFrame, QSlider, QDoubleSpinBox]:
+    ) -> tuple[
+        QFrame,
+        QFrame,
+        QComboBox,
+        QSlider,
+        QDoubleSpinBox,
+        QDoubleSpinBox,
+        QDoubleSpinBox,
+    ]:
         body_card = QFrame()
         body_card.setObjectName(f"{side_name}BodyCard")
         body_layout = QVBoxLayout(body_card)
@@ -184,7 +194,9 @@ class HeatTransfer(QWidget):
         body_heading.setObjectName("bodyTitle")
         body_layout.addWidget(body_heading)
 
-        
+        body_visual = QFrame()
+        body_visual.setObjectName(f"{side_name}BodyVisual")
+        body_layout.addWidget(body_visual)
 
         material_label = QLabel("Material")
         material_label.setObjectName(f"{side_name}MaterialLabel")
@@ -249,7 +261,15 @@ class HeatTransfer(QWidget):
         body_layout.addLayout(properties_layout)
         body_layout.addStretch()
 
-        return body_card, material_selector, temperature_slider, temperature_display, heat_capacity_input, mass_input
+        return (
+            body_card,
+            body_visual,
+            material_selector,
+            temperature_slider,
+            temperature_display,
+            heat_capacity_input,
+            mass_input,
+        )
 
     def _create_bridge_panel(self) -> QFrame:
         bridge_panel = QFrame()
@@ -407,13 +427,13 @@ class HeatTransfer(QWidget):
             self.right_body.temperature,
         )
 
-        self.update_bridge_color()
+        self.update_temperature_colors()
 #עצירה אוטומטית- בונוס
         if abs(self.left_body.temperature - self.right_body.temperature) < 0.0001:
             self.start_button.setChecked(False)
             self.toggle_simulation()
 
-        self.update_bridge_color()
+        self.update_temperature_colors()
 
     
     def _sync_bodies_from_inputs(self) -> None:
@@ -422,35 +442,42 @@ class HeatTransfer(QWidget):
         self.right_body.mass = self.right_mass_input.value()
         self.right_body.heat_capacity = self.right_heat_capacity_input.value()
 
+    def update_body_colors(self) -> None:
+        for body, body_visual in (
+            (self.left_body, self.left_body_visual),
+            (self.right_body, self.right_body_visual),
+        ):
+            red = self._temperature_red_component(body.temperature)
+            body_visual.setStyleSheet(f"background-color: rgb({red}, 0, 0);")
+
     def update_bridge_color(self) -> None:
-        left_red = int((self.left_body.temperature / 200.0) * 255)
-        right_red = int((self.right_body.temperature / 200.0) * 255)
-
-        left_red = min(255, max(0, left_red))
-        right_red = min(255, max(0, right_red))
-
+        left_red = self._temperature_red_component(self.left_body.temperature)
+        right_red = self._temperature_red_component(self.right_body.temperature)
         self.bridge_bar.setStyleSheet(
-            f"""
-            QFrame#bridgeBar {{
-                background: qlineargradient(
-                    x1: 0, y1: 0, x2: 1, y2: 0,
-                    stop: 0 rgb({left_red}, 0, 0),
-                    stop: 1 rgb({right_red}, 0, 0)
-                );
-                border-radius: 10px;
-            }}
-            """
+            "background: qlineargradient("
+            "x1: 0, y1: 0, x2: 1, y2: 0, "
+            f"stop: 0 rgb({left_red}, 0, 0), "
+            f"stop: 1 rgb({right_red}, 0, 0));"
         )
+
+    def update_temperature_colors(self) -> None:
+        self.update_body_colors()
+        self.update_bridge_color()
+
+    @staticmethod
+    def _temperature_red_component(temperature: float) -> int:
+        bounded_temperature = min(200.0, max(0.0, temperature))
+        return round(bounded_temperature / 200.0 * 255)
 
     def _set_left_temperature_from_slider(self, temperature: int) -> None:
         self.left_body.temperature = float(temperature)
         self.left_temperature_display.setValue(self.left_body.temperature)
-        self.update_bridge_color()
+        self.update_temperature_colors()
 
     def _set_right_temperature_from_slider(self, temperature: int) -> None:
         self.right_body.temperature = float(temperature)
         self.right_temperature_display.setValue(self.right_body.temperature)
-        self.update_bridge_color()   
+        self.update_temperature_colors()
 
 if __name__ == "__main__":
     app = QApplication()
