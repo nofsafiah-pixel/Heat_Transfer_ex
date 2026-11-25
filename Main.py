@@ -344,6 +344,16 @@ class HeatTransfer(QWidget):
         self.right_temperature_c = min(200.0, max(0.0, new_t_right))
         self.left_temperature_display.setValue(self.left_temperature_c)
         self.right_temperature_display.setValue(self.right_temperature_c)
+        
+        self.left_temperature_slider.blockSignals(True)
+        self.right_temperature_slider.blockSignals(True)
+        self.left_temperature_slider.setValue(round(self.left_temperature_c))
+        self.right_temperature_slider.setValue(round(self.right_temperature_c))
+        self.left_temperature_slider.blockSignals(False)
+        self.right_temperature_slider.blockSignals(False)
+
+        self.update_bridge_color()
+
     
     def update_bridge_color(self) -> None:
         left_red = int((self.left_temperature_c / 200.0) * 255)
