@@ -80,10 +80,9 @@ class GraphWindow(QWidget):
 
         self.save_graph_button = QPushButton("Save Graph")
         self.save_graph_button.setObjectName("secondaryButton")
-        self.save_graph_button.clicked.connect(self._show_save_graph_placeholder)
+        self.save_graph_button.clicked.connect(self.save_graph)
         button_row.addWidget(self.save_graph_button)
         window_layout.addLayout(button_row)
-
         self.plot_data()
 
     def add_data_point(self, time_s: float, t_left: float, t_right: float) -> None:
@@ -153,3 +152,23 @@ class GraphWindow(QWidget):
                 f.write(f"{t},{t1},{t2}\n")
 
         QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+
+    def save_graph(self) -> None:
+        if not self.times:
+            QMessageBox.information(
+                self,
+                "Save Graph",
+                "No simulation data to save yet.",
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Graph Image",
+            "temperature_graph.png",
+            "PNG Image (*.png);;JPEG Image (*.jpg *.jpeg);;All Files (*)",
+        )
+        if not file_path:
+            return
+
+        self.figure.savefig(file_path, dpi=300, bbox_inches="tight")
