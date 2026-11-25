@@ -109,6 +109,12 @@ class HeatTransfer(QWidget):
 
         self.left_material_combo.currentTextChanged.connect(self.update_left_material)
         self.right_material_combo.currentTextChanged.connect(self.update_right_material)
+        self.left_heat_capacity_input.valueChanged.connect(
+            self._set_left_material_to_custom_if_needed
+        )
+        self.right_heat_capacity_input.valueChanged.connect(
+            self._set_right_material_to_custom_if_needed
+        )
 
         action_layout = QHBoxLayout()
         action_layout.setSpacing(12)
@@ -275,11 +281,13 @@ class HeatTransfer(QWidget):
     ) -> QDoubleSpinBox:
         parameter_input = QDoubleSpinBox()
         parameter_input.setObjectName(object_name)
-        parameter_input.setRange(0.01, 10000.0)
-        parameter_input.setDecimals(2)
+        parameter_input.setRange(0.0001, 1_000_000.0)
+        parameter_input.setDecimals(4)
         parameter_input.setSingleStep(0.01)
         parameter_input.setValue(initial_value)
         parameter_input.setSuffix(suffix)
+        parameter_input.setReadOnly(False)
+        parameter_input.setKeyboardTracking(False)
         return parameter_input
 
     def _open_about_window(self) -> None:
@@ -308,6 +316,34 @@ class HeatTransfer(QWidget):
         material = self.right_material_combo.currentText()
         if material in self.materials:
             self.right_heat_capacity_input.setValue(self.materials[material])
+
+    def _set_left_material_to_custom_if_needed(self, heat_capacity: float) -> None:
+        self._set_material_to_custom_if_needed(
+            self.left_material_combo,
+            heat_capacity,
+        )
+
+    def _set_right_material_to_custom_if_needed(self, heat_capacity: float) -> None:
+        self._set_material_to_custom_if_needed(
+            self.right_material_combo,
+            heat_capacity,
+        )
+
+    def _set_material_to_custom_if_needed(
+        self,
+        material_combo: QComboBox,
+        heat_capacity: float,
+    ) -> None:
+        standard_heat_capacity = self.materials.get(material_combo.currentText())
+        if (
+            standard_heat_capacity is not None
+            and heat_capacity != standard_heat_capacity
+        ):
+            signals_were_blocked = material_combo.blockSignals(True)
+            try:
+                material_combo.setCurrentText("Custom")
+            finally:
+                material_combo.blockSignals(signals_were_blocked)
 
     def toggle_simulation(self):
         is_running = self.start_button.isChecked()
