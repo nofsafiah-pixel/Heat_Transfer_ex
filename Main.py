@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from Body import Body
+
 from PySide6.QtCore import Qt, QTimer
 
 from PySide6.QtCore import QUrl
@@ -36,7 +38,7 @@ class HeatTransfer(QWidget):
         "Iron": 449.0,
         "Copper": 385.0,
     }
-
+        
     
 
         stylesheet_path = Path(__file__).with_name("style.qss")
@@ -100,8 +102,17 @@ class HeatTransfer(QWidget):
         )
         bodies_layout.addWidget(self.right_body_card, 5)
 
-        self.left_temperature_c = 200.0
-        self.right_temperature_c = 0.0
+        self.left_body = Body(
+            self.left_mass_input.value(),
+            self.left_heat_capacity_input.value(),
+            200.0,
+        )
+        self.right_body = Body(
+            self.right_mass_input.value(),
+            self.right_heat_capacity_input.value(),
+            0.0,
+        )
+
         self.left_temperature_slider.valueChanged.connect(
             self._set_left_temperature_from_slider
         )
@@ -118,6 +129,11 @@ class HeatTransfer(QWidget):
         self.right_heat_capacity_input.valueChanged.connect(
             self._set_right_material_to_custom_if_needed
         )
+
+        self.left_mass_input.valueChanged.connect(self._sync_bodies_from_inputs)
+        self.right_mass_input.valueChanged.connect(self._sync_bodies_from_inputs)
+        self.left_heat_capacity_input.valueChanged.connect(self._sync_bodies_from_inputs)
+        self.right_heat_capacity_input.valueChanged.connect(self._sync_bodies_from_inputs)
 
         action_layout = QHBoxLayout()
         action_layout.setSpacing(12)
@@ -302,14 +318,6 @@ class HeatTransfer(QWidget):
         self.graph_window.raise_()
         self.graph_window.activateWindow()
 
-    def _set_left_temperature_from_slider(self, temperature: int) -> None:
-        self.left_temperature_c = float(temperature)
-        self.left_temperature_display.setValue(self.left_temperature_c)
-
-    def _set_right_temperature_from_slider(self, temperature: int) -> None:
-        self.right_temperature_c = float(temperature)
-        self.right_temperature_display.setValue(self.right_temperature_c)
-
     def update_left_material(self):
         material = self.left_material_combo.currentText()
         if material in self.materials:
@@ -373,49 +381,44 @@ class HeatTransfer(QWidget):
             self.timer.stop()
 
     def step_simulation(self):
-        t_left = self.left_temperature_c
-        t_right = self.right_temperature_c
-
-        m_left = self.left_mass_input.value()
-        m_right = self.right_mass_input.value()
-
-        c_left = self.left_heat_capacity_input.value()
-        c_right = self.right_heat_capacity_input.value()
-
         k = self.conductivity_input.value()
+        q = k * (self.left_body.temperature - self.right_body.temperature) * self.dt
 
-        if m_left * c_left == 0 or m_right * c_right == 0:
-            return
+        self.left_body.add_heat(-q)
+        self.right_body.add_heat(q)
 
-        q = k * (t_left - t_right) * self.dt
-        new_t_left = t_left - q / (m_left * c_left)
-        new_t_right = t_right + q / (m_right * c_right)
+        self.left_body.temperature = min(200.0, max(0.0, self.left_body.temperature))
+        self.right_body.temperature = min(200.0, max(0.0, self.right_body.temperature))
 
-        self.left_temperature_c = min(200.0, max(0.0, new_t_left))
-        self.right_temperature_c = min(200.0, max(0.0, new_t_right))
-        self.left_temperature_display.setValue(self.left_temperature_c)
-        self.right_temperature_display.setValue(self.right_temperature_c)
-        
+        self.left_temperature_display.setValue(self.left_body.temperature)
+        self.right_temperature_display.setValue(self.right_body.temperature)
+
         self.left_temperature_slider.blockSignals(True)
         self.right_temperature_slider.blockSignals(True)
-        self.left_temperature_slider.setValue(round(self.left_temperature_c))
-        self.right_temperature_slider.setValue(round(self.right_temperature_c))
+        self.left_temperature_slider.setValue(round(self.left_body.temperature))
+        self.right_temperature_slider.setValue(round(self.right_body.temperature))
         self.left_temperature_slider.blockSignals(False)
         self.right_temperature_slider.blockSignals(False)
 
         self.elapsed_time = round(self.elapsed_time + self.dt, 4)
         self.graph_window.add_data_point(
             self.elapsed_time,
-            self.left_temperature_c,
-            self.right_temperature_c,
+            self.left_body.temperature,
+            self.right_body.temperature,
         )
 
         self.update_bridge_color()
 
     
+    def _sync_bodies_from_inputs(self) -> None:
+        self.left_body.mass = self.left_mass_input.value()
+        self.left_body.heat_capacity = self.left_heat_capacity_input.value()
+        self.right_body.mass = self.right_mass_input.value()
+        self.right_body.heat_capacity = self.right_heat_capacity_input.value()
+
     def update_bridge_color(self) -> None:
-        left_red = int((self.left_temperature_c / 200.0) * 255)
-        right_red = int((self.right_temperature_c / 200.0) * 255)
+        left_red = int((self.left_body.temperature / 200.0) * 255)
+        right_red = int((self.right_body.temperature / 200.0) * 255)
 
         left_red = min(255, max(0, left_red))
         right_red = min(255, max(0, right_red))
@@ -434,14 +437,14 @@ class HeatTransfer(QWidget):
         )
 
     def _set_left_temperature_from_slider(self, temperature: int) -> None:
-        self.left_temperature_c = float(temperature)
-        self.left_temperature_display.setValue(self.left_temperature_c)
+        self.left_body.temperature = float(temperature)
+        self.left_temperature_display.setValue(self.left_body.temperature)
         self.update_bridge_color()
 
     def _set_right_temperature_from_slider(self, temperature: int) -> None:
-        self.right_temperature_c = float(temperature)
-        self.right_temperature_display.setValue(self.right_temperature_c)
-        self.update_bridge_color()      
+        self.right_body.temperature = float(temperature)
+        self.right_temperature_display.setValue(self.right_body.temperature)
+        self.update_bridge_color()   
 
 if __name__ == "__main__":
     app = QApplication()
