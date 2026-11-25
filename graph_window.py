@@ -45,6 +45,11 @@ class GraphWindow(QWidget):
         series_row.addStretch()
         window_layout.addLayout(series_row)
 
+        self.times = []
+        self.left_temps = []
+        self.right_temps = []
+        self.series_selector.currentTextChanged.connect(self.plot_data)
+
         graph_frame = QFrame()
         graph_frame.setObjectName("graphFrame")
         graph_layout = QVBoxLayout(graph_frame)
@@ -62,7 +67,7 @@ class GraphWindow(QWidget):
 
         self.reset_button = QPushButton("Reset")
         self.reset_button.setObjectName("resetButton")
-        self.reset_button.clicked.connect(self.plot_data)
+        self.reset_button.clicked.connect(self.reset_graph)
         button_row.addWidget(self.reset_button)
 
         self.save_csv_button = QPushButton("Save CSV")
@@ -78,9 +83,28 @@ class GraphWindow(QWidget):
 
         self.plot_data()
 
+    def add_data_point(self, time_s: float, t_left: float, t_right: float) -> None:
+        self.times.append(time_s)
+        self.left_temps.append(t_left)
+        self.right_temps.append(t_right)
+        self.plot_data()
+
+    def reset_graph(self) -> None:
+        self.times.clear()
+        self.left_temps.clear()
+        self.right_temps.clear()
+        self.plot_data()
+
     def plot_data(self) -> None:
         """Set up placeholder axes for future simulation data."""
         self.axes.clear()
+        selected = self.series_selector.currentText()
+        if self.times:
+            if selected in ("Left Body", "Both"):
+                self.axes.plot(self.times, self.left_temps, color="red", label="Left Body")
+            if selected in ("Right Body", "Both"):
+                self.axes.plot(self.times, self.right_temps, color="black", label="Right Body")
+            self.axes.legend()
         self.axes.set_title("Temperature over time")
         self.axes.set_xlabel("Time (s)")
         self.axes.set_ylabel("Temperature (°C)")

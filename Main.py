@@ -75,7 +75,6 @@ class HeatTransfer(QWidget):
         ) = self._create_body_panel(
             "left",
             "Left body",
-            "HOT RESERVOIR",
             200,
         )
         bodies_layout.addWidget(self.left_body_card, 5)
@@ -94,7 +93,6 @@ class HeatTransfer(QWidget):
         ) = self._create_body_panel(
             "right",
             "Right body",
-            "COOL RESERVOIR",
             0,
         )
         bodies_layout.addWidget(self.right_body_card, 5)
@@ -139,6 +137,7 @@ class HeatTransfer(QWidget):
         self.about_window = None
 
         self.dt = 0.1
+        self.elapsed_time = 0.0
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.step_simulation)
         self.start_button.clicked.connect(self.toggle_simulation)
@@ -148,7 +147,6 @@ class HeatTransfer(QWidget):
         self,
         side_name: str,
         title: str,
-        reservoir_caption: str,
         initial_temperature: int,
     ) -> tuple[QFrame, QSlider, QDoubleSpinBox]:
         body_card = QFrame()
@@ -161,9 +159,7 @@ class HeatTransfer(QWidget):
         body_heading.setObjectName("bodyTitle")
         body_layout.addWidget(body_heading)
 
-        body_caption = QLabel(reservoir_caption)
-        body_caption.setObjectName(f"{side_name}ReservoirCaption")
-        body_layout.addWidget(body_caption)
+        
 
         material_label = QLabel("Material")
         material_label.setObjectName(f"{side_name}MaterialLabel")
@@ -336,7 +332,7 @@ class HeatTransfer(QWidget):
         else:
             self.start_button.setText("Start")
             self.timer.stop()
-            
+
     def step_simulation(self):
         t_left = self.left_temperature_c
         t_right = self.right_temperature_c
@@ -367,6 +363,13 @@ class HeatTransfer(QWidget):
         self.right_temperature_slider.setValue(round(self.right_temperature_c))
         self.left_temperature_slider.blockSignals(False)
         self.right_temperature_slider.blockSignals(False)
+
+        self.elapsed_time = round(self.elapsed_time + self.dt, 4)
+        self.graph_window.add_data_point(
+            self.elapsed_time,
+            self.left_temperature_c,
+            self.right_temperature_c,
+        )
 
         self.update_bridge_color()
 
